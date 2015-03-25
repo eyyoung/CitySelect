@@ -2,12 +2,12 @@ package me.yytech.cityselect.library;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.XmlResourceParser;
+import android.os.AsyncTask;
 import android.os.Build;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,7 +16,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.github.stuxuhai.jpinyin.PinyinHelper;
+import net.sourceforge.pinyin4j.PinyinHelper;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -28,7 +28,7 @@ import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 
-public class CitySelectActivity extends ActionBarActivity implements StickyListHeadersListView.OnStickyHeaderOffsetChangedListener, StickyListHeadersListView.OnStickyHeaderChangedListener {
+public class CitySelectActivity extends ActionBarActivity implements StickyListHeadersListView.OnStickyHeaderChangedListener {
 
     private StickyListHeadersListView mStickyListHeadersListView;
 
@@ -36,64 +36,87 @@ public class CitySelectActivity extends ActionBarActivity implements StickyListH
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_city_select);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mStickyListHeadersListView = (StickyListHeadersListView) findViewById(R.id.lvCity);
         mStickyListHeadersListView.setOnStickyHeaderChangedListener(this);
-        mStickyListHeadersListView.setOnStickyHeaderOffsetChangedListener(this);
+        mStickyListHeadersListView.setEmptyView(findViewById(R.id.empty_view));
 
+        QuickScroll quickScroll = (QuickScroll)findViewById(R.id.quickscroll);
 
-        ArrayList<String> strings = new ArrayList<String>();
-        ArrayList<Character> letters = new ArrayList<Character>();
-        XmlResourceParser xrp = getResources().getXml(R.xml.cities);
-        try {
-            while (xrp.next() != XmlResourceParser.START_TAG) {
-                continue;
-            }
-            xrp.next();
-            int readCount = 0;
-            while (xrp.getEventType() != XmlResourceParser.END_TAG) {
-                while (xrp.getEventType() != XmlResourceParser.START_TAG) {
-                    if (xrp.getEventType() == XmlResourceParser.END_DOCUMENT) {
-                        return;
+        initData();
+    }
+
+    private void initData() {
+        new AsyncTask<Void, Void, Void>() {
+
+            ArrayList<String> strings = new ArrayList<String>();
+            ArrayList<Character> letters = new ArrayList<Character>();
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                XmlResourceParser xrp = getResources().getXml(R.xml.cities);
+                try {
+                    while (xrp.next() != XmlResourceParser.START_TAG) {
+                        continue;
                     }
                     xrp.next();
+                    int readCount = 0;
+                    while (xrp.getEventType() != XmlResourceParser.END_TAG) {
+                        while (xrp.getEventType() != XmlResourceParser.START_TAG) {
+                            if (xrp.getEventType() == XmlResourceParser.END_DOCUMENT) {
+                                return null;
+                            }
+                            xrp.next();
+                        }
+                        if (xrp.getName().equals("City")) {
+                            String s = xrp.nextText();
+                            strings.add(s);
+                            if (s.length() > 0) {
+                                letters.add(PinyinHelper.toHanyuPinyinStringArray(s.charAt(0))[0].charAt(0));
+                            }
+                        }
+                        while (xrp.getEventType() != XmlResourceParser.END_TAG) {
+                            xrp.next();
+                        }
+                        xrp.next();
+                    }
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                if (xrp.getName().equals("City")) {
-                    String s = xrp.nextText();
-                    strings.add(s);
-                    letters.add(Character.valueOf(PinyinHelper.getShortPinyin(s).charAt(0)));
-                }
-                while (xrp.getEventType() != XmlResourceParser.END_TAG) {
-                    xrp.next();
-                }
-                xrp.next();
+                return null;
             }
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        String[] stringList = strings.toArray(new String[strings.size()]);
-        Arrays.sort(stringList, new CityComparator());
-        Character[] letterArray = letters.toArray(new Character[letters.size()]);
-        Arrays.sort(letterArray, new CharacterComparator());
-        CityAdapter adapter = new CityAdapter(stringList, letterArray);
-        mStickyListHeadersListView.setAdapter(adapter);
+            @Override
+            protected void onPostExecute(Void result) {
+                super.onPostExecute(result);
+                if (!isFinishing()) {
+                    String[] stringList = strings.toArray(new String[strings.size()]);
+                    Arrays.sort(stringList, new CityComparator());
+                    Character[] letterArray = letters.toArray(new Character[letters.size()]);
+                    Arrays.sort(letterArray, new CharacterComparator());
+                    CityAdapter adapter = new CityAdapter(stringList, letterArray);
+                    mStickyListHeadersListView.setAdapter(adapter);
+                }
+            }
+        }.execute();
     }
-
-    @Override
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public void onStickyHeaderOffsetChanged(StickyListHeadersListView l, View header, int offset) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            header.setAlpha(1 - (offset / (float) header.getMeasuredHeight()));
-        }
-    }
-
 
     @Override
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void onStickyHeaderChanged(StickyListHeadersListView l, View header, int itemPosition, long headerId) {
         header.setAlpha(1);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private class CityAdapter extends BaseAdapter implements StickyListHeadersAdapter {
@@ -142,37 +165,15 @@ public class CitySelectActivity extends ActionBarActivity implements StickyListH
             if (pView == null) {
                 pView = LayoutInflater.from(CitySelectActivity.this).inflate(R.layout.cityselect_item_city_header, null);
             }
-            TextView textView = (TextView) pView;
-            textView.setText(mStringLetters[i].toString());
+            TextView textView = (TextView) ((ViewGroup) pView).getChildAt(0);
+            textView.setText(mStringLetters[i].toString().toUpperCase());
             return pView;
         }
 
         @Override
         public long getHeaderId(int i) {
-            return i;
+            return (mStringLetters[i]).charValue();
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_city_select, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     public static void startCitySelect(Activity pActivity, int requestCode) {
