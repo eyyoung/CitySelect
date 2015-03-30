@@ -21,9 +21,10 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.Adapter;
 import android.widget.ExpandableListView;
 import android.widget.HeaderViewListAdapter;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 public class QuickScroll extends View {
 
@@ -50,7 +51,7 @@ public class QuickScroll extends View {
     protected AlphaAnimation fadeInAnimation, fadeOutAnimation;
     protected TextView scrollIndicatorTextView;
     protected Scrollable scrollable;
-    protected ListView listView;
+    protected StickyListHeadersListView listView;
     protected int groupPosition;
     protected int itemCount;
     protected int type;
@@ -82,12 +83,13 @@ public class QuickScroll extends View {
      * @param list       the ListView
      * @param scrollable the adapter, must implement Scrollable interface
      */
-    public void init(final int type, final ListView list, final Scrollable scrollable, final int style) {
+    public void init(final int type, final StickyListHeadersListView list, final Scrollable scrollable, final int style) {
         if (isInitialized) return;
 
         this.type = type;
         listView = list;
         this.scrollable = scrollable;
+        final float density = getResources().getDisplayMetrics().density;
         groupPosition = -1;
         fadeInAnimation = new AlphaAnimation(.0f, 1.0f);
         fadeInAnimation.setFillAfter(true);
@@ -128,7 +130,7 @@ public class QuickScroll extends View {
             scrollIndicatorTextView.setTextColor(Color.WHITE);
             scrollIndicatorTextView.setVisibility(View.INVISIBLE);
             scrollIndicatorTextView.setGravity(Gravity.CENTER);
-            final RelativeLayout.LayoutParams popupParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            final RelativeLayout.LayoutParams popupParams = new RelativeLayout.LayoutParams((int) (72 * density), (int) (72 * density));
             popupParams.addRule(RelativeLayout.CENTER_IN_PARENT);
             scrollIndicatorTextView.setLayoutParams(popupParams);
             setPopupColor(GREY_LIGHT, GREY_DARK, 1, Color.WHITE, 1);
@@ -142,8 +144,7 @@ public class QuickScroll extends View {
         }
 
         // setting scrollbar width
-        final float density = getResources().getDisplayMetrics().density;
-        getLayoutParams().width = (int) (30 * density);
+        getLayoutParams().width = (int) (10 * density);
         scrollIndicatorTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 32);
 
         // scrollbar setup
@@ -222,7 +223,8 @@ public class QuickScroll extends View {
                     scrollIndicator.startAnimation(fadeInAnimation);
                     scrollIndicator.setPadding(0, 0, getWidth(), 0);
                 } else
-                    scrollIndicatorTextView.startAnimation(fadeInAnimation); scroll(event.getY());
+                    scrollIndicatorTextView.startAnimation(fadeInAnimation);
+                scroll(event.getY());
                 isScrolling = true;
                 return true;
             case MotionEvent.ACTION_MOVE:
@@ -261,8 +263,8 @@ public class QuickScroll extends View {
         }
 
         int position = (int) ((height / getHeight()) * itemCount);
-        if (listView instanceof ExpandableListView) {
-            final int groupPosition = ExpandableListView.getPackedPositionGroup(((ExpandableListView) listView).getExpandableListPosition(position));
+        if (listView.getWrappedList() instanceof ExpandableListView) {
+            final int groupPosition = ExpandableListView.getPackedPositionGroup(((ExpandableListView) listView.getWrappedList()).getExpandableListPosition(position));
             if (groupPosition != -1)
                 this.groupPosition = groupPosition;
         }

@@ -8,12 +8,14 @@
 
     <se.emilsjolander.stickylistheaders.StickyListHeadersListView
         android:id="@+id/lvCity"
+        android:scrollbars="none"
         android:divider="@null"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <com.andraskindler.quickscroll.QuickScroll
+    <me.yytech.cityselect.library.QuickScroll
         android:id="@+id/quickscroll"
+        android:layout_alignParentRight="true"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"/>
 

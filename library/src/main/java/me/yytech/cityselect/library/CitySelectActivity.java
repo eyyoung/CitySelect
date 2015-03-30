@@ -9,10 +9,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
@@ -28,8 +28,9 @@ import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 
-public class CitySelectActivity extends ActionBarActivity implements StickyListHeadersListView.OnStickyHeaderChangedListener {
+public class CitySelectActivity extends ActionBarActivity implements StickyListHeadersListView.OnStickyHeaderChangedListener, AdapterView.OnItemClickListener {
 
+    public static final String RESULT_CITY = "cityname";
     private StickyListHeadersListView mStickyListHeadersListView;
 
     @Override
@@ -40,8 +41,6 @@ public class CitySelectActivity extends ActionBarActivity implements StickyListH
         mStickyListHeadersListView = (StickyListHeadersListView) findViewById(R.id.lvCity);
         mStickyListHeadersListView.setOnStickyHeaderChangedListener(this);
         mStickyListHeadersListView.setEmptyView(findViewById(R.id.empty_view));
-
-        QuickScroll quickScroll = (QuickScroll)findViewById(R.id.quickscroll);
 
         initData();
     }
@@ -98,6 +97,9 @@ public class CitySelectActivity extends ActionBarActivity implements StickyListH
                     Arrays.sort(letterArray, new CharacterComparator());
                     CityAdapter adapter = new CityAdapter(stringList, letterArray);
                     mStickyListHeadersListView.setAdapter(adapter);
+                    QuickScroll quickScroll = (QuickScroll) findViewById(R.id.quickscroll);
+                    quickScroll.init(QuickScroll.TYPE_POPUP, mStickyListHeadersListView, adapter, QuickScroll.STYLE_HOLO);
+                    mStickyListHeadersListView.setOnItemClickListener(CitySelectActivity.this);
                 }
             }
         }.execute();
@@ -119,7 +121,16 @@ public class CitySelectActivity extends ActionBarActivity implements StickyListH
         return super.onOptionsItemSelected(item);
     }
 
-    private class CityAdapter extends BaseAdapter implements StickyListHeadersAdapter {
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        String city = (String) parent.getAdapter().getItem(position);
+        Intent intent = new Intent();
+        intent.putExtra(RESULT_CITY, city);
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+
+    private class CityAdapter extends BaseAdapter implements StickyListHeadersAdapter, Scrollable {
 
         private String[] mStringList;
         private Character[] mStringLetters;
@@ -173,6 +184,16 @@ public class CitySelectActivity extends ActionBarActivity implements StickyListH
         @Override
         public long getHeaderId(int i) {
             return (mStringLetters[i]).charValue();
+        }
+
+        @Override
+        public String getIndicatorForPosition(int childposition, int groupposition) {
+            return String.valueOf(mStringLetters[childposition].charValue());
+        }
+
+        @Override
+        public int getScrollPosition(int childposition, int groupposition) {
+            return childposition;
         }
     }
 

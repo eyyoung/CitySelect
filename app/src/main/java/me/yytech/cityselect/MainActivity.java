@@ -1,10 +1,12 @@
 package me.yytech.cityselect;
 
-import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import me.yytech.cityselect.library.CitySelectActivity;
 
@@ -41,5 +43,15 @@ public class MainActivity extends ActionBarActivity {
 
     public void test(View view) {
         CitySelectActivity.startCitySelect(this, 0x1000);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+        String city = data.getStringExtra(CitySelectActivity.RESULT_CITY);
+        Toast.makeText(this, city, Toast.LENGTH_LONG).show();
     }
 }
