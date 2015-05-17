@@ -5,7 +5,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.0.1'
+        classpath 'com.android.tools.build:gradle:1.1.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
     }
 }
@@ -13,5 +13,8 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+        maven {
+            url "http://dl.bintray.com/eyyoung/maven"
+        }
     }
 }
