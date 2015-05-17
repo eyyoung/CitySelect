@@ -19,16 +19,21 @@ Add dependency
 compile 'me.yytech.android.CitySelect:library:1.0.+@aar'
 </pre>
 
-### View
+Provide two way to use
 
-<pre>
-<me.yytech.cityselect.library.CityListView
-        android:id="@+id/vCity"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-</pre>
+### View
+View In XML
+
+```xml
+    <me.yytech.cityselect.library.CityListView
+            android:id="@+id/vCity"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+```
 
 ### Activity
+
+Or Simple Activity
 
 <pre>
     public void test(View view) {
