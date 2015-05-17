@@ -24,3 +24,27 @@ dependencies {
     compile 'se.emilsjolander:stickylistheaders:2.5.2'
     compile 'com.novoda:sexp:1.0.3'
 }
+
+apply plugin: 'com.jfrog.bintray'
+
+group = 'me.yytech.android.CitySelect' //maven POM group
+version = '1.0.0' // maven POM real version
+
+bintray {
+    user = bintrayUser
+    key = bintrayApiKey
+
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "me.yytech.android.CitySelect"
+        websiteUrl = "https://github.com/eyyoung/CitySelect"
+        vcsUrl = "https://github.com/eyyoung/CitySelect.git"
+        issueTrackerUrl = 'https://github.com/eyyoung/CitySelect/issues'
+        licenses = ["Apache-2.0"]
+        publish = true
+        version {
+            name = '1.0.0' //Bintray logical version name
+        }
+    }
+}

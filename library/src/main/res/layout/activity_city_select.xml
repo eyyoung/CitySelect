@@ -6,23 +6,9 @@
                 android:paddingRight="10dp"
                 tools:context="me.yytech.cityselect.library.CitySelectActivity">
 
-    <se.emilsjolander.stickylistheaders.StickyListHeadersListView
-        android:id="@+id/lvCity"
-        android:scrollbars="none"
-        android:divider="@null"
+    <me.yytech.cityselect.library.CityListView
+        android:id="@+id/vCity"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
-    <me.yytech.cityselect.library.QuickScroll
-        android:id="@+id/quickscroll"
-        android:layout_alignParentRight="true"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"/>
-
-    <ProgressBar
-        android:id="@+id/empty_view"
-        style="?attr/indeterminateProgressStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
 
 </RelativeLayout>
